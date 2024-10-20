@@ -1,47 +1,22 @@
-import React, { useEffect } from 'react';
-import MemecoinCard from './components/MemecoinCard';
+import React from 'react';
+import { PrivyProvider } from '@privy-io/react-auth'; // Correct import from Privy React SDK
+import MemecoinCard from './components/MemecoinCard'; // Ensure this is correct
 import './App.css';
-import { PrivyProvider } from '@privy-io/react-auth';
 
 const App = () => {
-  useEffect(() => {
-    // Initialize Telegram WebApp API safely
-    if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
-      window.Telegram.WebApp.ready();
-      console.log('Telegram WebApp is ready.');
-    } else {
-      console.error('Telegram WebApp is not available or the app is not running inside Telegram.');
-    }
-  }, []);
-
   return (
     <PrivyProvider
-      appId={process.env.REACT_APP_PRIVY_API_KEY}
+      appId={process.env.REACT_APP_PRIVY_API_KEY} // Ensure your Privy API key is set in environment variables
       config={{
         appearance: {
           accentColor: '#6A6FF5',
           theme: '#FFFFFF',
           showWalletLoginFirst: false,
-          logo: 'https://auth.privy.io/logos/privy-logo.png',
-          walletChainType: 'ethereum-and-solana',
         },
-        loginMethods: ['telegram'],
-        fundingMethodConfig: {
-          moonpay: {
-            useSandbox: true,
-          },
-        },
-        embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
-          requireUserPasswordOnCreate: false,
-        },
-        mfa: {
-          noPromptOnMfaRequired: false,
-        },
+        loginMethods: ['telegram'], // Customize the login methods if needed
       }}
     >
       <div className="App">
-        {/* Removed Wallet component */}
         <MemecoinCard />
       </div>
     </PrivyProvider>

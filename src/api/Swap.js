@@ -1,52 +1,34 @@
-import { ethers } from 'ethers';
 import axios from 'axios';
+import { getPrivyWalletAddress } from './Wallet';
 
-const swapApiUrl = 'https://sepolia.api.0x.org/swap/v1/quote';
+const API_URL = 'https://sepolia.api.0x.org/swap/v1/quote';
 
 /**
- * Perform a token swap using 0x Swap API
- * @param {string} fromToken - The token address you want to sell (e.g., ETH address).
- * @param {string} toToken - The token address you want to buy.
- * @param {string} amount - The amount to sell in base units (wei).
- * @param {string} walletAddress - The address of the taker's wallet.
- * @param {object} provider - The ethers.js provider instance.
+ * Initiates a swap using the 0x Swap API.
+ * @param {string} buyTokenAddress - The address of the token to buy.
+ * @param {number} sellAmount - The amount of ETH to sell (in ETH, not wei).
  */
-export const swapTokens = async (fromToken, toToken, amount, walletAddress, provider) => {
+export const initiateSwap = async (buyTokenAddress, sellAmount) => {
   try {
-    // Step 1: Get a quote from the 0x API
-    const response = await axios.get(swapApiUrl, {
+    const walletAddress = await getPrivyWalletAddress(); // Fetch the user's Privy wallet address
+
+    const response = await axios.get(API_URL, {
       params: {
-        buyToken: toToken,
-        sellToken: fromToken,
-        sellAmount: amount, // The amount to sell in base units (wei)
-        takerAddress: walletAddress, // Address of the wallet performing the swap
+        buyToken: buyTokenAddress, // The token we're buying (WETH, UNI, LINK)
+        sellToken: 'ETH', // We're selling ETH
+        sellAmount: (sellAmount * 1e18).toString(), // Convert ETH to wei
+        takerAddress: walletAddress, // Privy wallet address as the taker
+        slippagePercentage: 0.01, // 1% slippage tolerance
       },
     });
 
-    const quote = response.data;
+    const swapData = response.data;
+    console.log('Swap data:', swapData);
 
-    // Step 2: Send the swap transaction to Ethereum Sepolia network using ethers.js
-    const signer = provider.getSigner();
-    const tx = {
-      from: walletAddress,
-      to: quote.to, // The contract address provided in the quote
-      data: quote.data, // The data field provided by 0x
-      value: ethers.BigNumber.from(quote.value || '0'), // Use the value provided by the quote if any
-      gasPrice: ethers.BigNumber.from(quote.gasPrice), // Gas price suggested in the quote
-      gasLimit: ethers.BigNumber.from(quote.gas), // Gas limit suggested in the quote
-    };
-
-    // Step 3: Sign and send the transaction
-    const txResponse = await signer.sendTransaction(tx);
-    console.log('Transaction hash:', txResponse.hash);
-
-    // Wait for the transaction to be confirmed
-    const receipt = await txResponse.wait();
-    console.log('Transaction confirmed:', receipt);
-
-    return receipt; // Return the transaction receipt
+    // Here, you would integrate the signing and sending of the transaction
+    // using Metamask or another wallet provider with the Privy wallet.
   } catch (error) {
-    console.error('Error performing swap:', error);
+    console.error('Error initiating swap:', error);
     throw error;
   }
 };

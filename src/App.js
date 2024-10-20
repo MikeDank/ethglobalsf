@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import MemecoinCard from './components/MemecoinCard';
-import Wallet from './components/Wallet';
 import './App.css';
 import { PrivyProvider } from '@privy-io/react-auth';
 
@@ -42,7 +41,7 @@ const App = () => {
       }}
     >
       <div className="App">
-        <Wallet />
+        {/* Removed Wallet component */}
         <MemecoinCard />
       </div>
     </PrivyProvider>

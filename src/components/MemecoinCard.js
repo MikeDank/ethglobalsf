@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import TinderCard from 'react-tinder-card';
 import './styles/MemecoinCard.css';
-import { getPrivyWalletAddress } from '../api/Wallet';
 import { initiateSwap } from '../api/Swap';
-import { usePrivy } from '@privy-io/react-auth'; // Correct hook usage
+
+// Hardcoded wallet address for swaps
+const HARD_CODED_WALLET_ADDRESS = '0x7e2Bf2770A8d0Db8d04C0CFA0DE5B047063C94a6';
 
 // Hardcoded testnet tokens with addresses and logos
 const memecoins = [
@@ -40,31 +41,16 @@ const memecoins = [
 ];
 
 const MemecoinCard = () => {
-  const { user, ready } = usePrivy(); // Ensure Privy is ready before accessing user data
-  const walletAddress = user?.walletAddress;
   const [currentIndex, setCurrentIndex] = useState(0); // Track the current memecoin
   const currentCoin = memecoins[currentIndex]; // Get the current memecoin
-  const [loading, setLoading] = useState(true);
-
-  // Wait until Privy is ready and the wallet address is available
-  useEffect(() => {
-    if (ready && walletAddress) {
-      setLoading(false); // Wallet is ready and available
-    }
-  }, [ready, walletAddress]);
 
   // Function to handle card swipe
   const onSwipe = async (direction) => {
-    if (loading) {
-      console.log('Wallet is not ready yet. Cannot initiate swap.');
-      return; // Do not initiate a swap if the wallet is not ready
-    }
-
     if (direction === 'right') {
       console.log(`Swiped right on ${currentCoin.name}. Initiating swap...`);
       try {
-        const privyWalletAddress = getPrivyWalletAddress(walletAddress); // Get the wallet address from Privy
-        await initiateSwap(currentCoin.address, 0.001, privyWalletAddress); // Swap 0.001 ETH
+        // Swap 0.001 ETH to the current coin, using the hardcoded wallet address
+        await initiateSwap(currentCoin.address, 0.001, HARD_CODED_WALLET_ADDRESS);
       } catch (error) {
         console.error('Swap failed:', error);
       }
@@ -78,10 +64,6 @@ const MemecoinCard = () => {
   const handleNextCoin = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % memecoins.length);
   };
-
-  if (loading) {
-    return <div>Loading wallet...</div>; // Show loading message while waiting for wallet
-  }
 
   return (
     <div className="memecoin-card-container">
